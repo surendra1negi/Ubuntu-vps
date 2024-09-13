@@ -33,7 +33,7 @@ jobs:
         run: |
           # Set up a user to SSH and VNC into
           sudo useradd -m ubuntu
-          echo 'ubuntu:P@ssw0rd!' | sudo chpasswd  # Replace 'password' with your desired password
+          echo 'ubuntu:Ubuntumpa0@' | sudo chpasswd  # Set SSH password
           sudo usermod -aG sudo ubuntu
 
       - name: Configure VNC Server
@@ -42,6 +42,10 @@ jobs:
           sudo -u ubuntu vncserver :1 -geometry 1280x800 -depth 24
           echo '#!/bin/bash\nstartxfce4 &' > /home/ubuntu/.vnc/xstartup
           sudo chmod +x /home/ubuntu/.vnc/xstartup
+
+          # Set the VNC password
+          echo "Ubuntumpa0@" | sudo -u ubuntu vncpasswd -f > /home/ubuntu/.vnc/passwd
+          sudo chmod 600 /home/ubuntu/.vnc/passwd
 
       - name: Expose SSH and VNC with Ngrok
         run: |

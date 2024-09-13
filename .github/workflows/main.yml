@@ -1,4 +1,4 @@
-name: Run Ubuntu VPS with Ngrok
+name: Run Ubuntu VPS with GUI, VNC, SSH, and Ngrok
 
 on:
   workflow_dispatch:
@@ -14,29 +14,45 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install Ngrok
+      - name: Install Ngrok, SSH, VNC, and XFCE
         run: |
+          # Install Ngrok
           curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
           echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
           sudo apt update
           sudo apt install -y ngrok
 
-      - name: Start a simple HTTP server on port 8080
-        run: |
-          sudo apt update
-          sudo apt install -y python3
-          python3 -m http.server 8080 &
+          # Install SSH server
+          sudo apt install -y openssh-server
+          sudo service ssh start
 
-      - name: Expose server with Ngrok
+          # Install XFCE Desktop Environment and VNC server
+          sudo apt install -y xfce4 xfce4-goodies tightvncserver
+
+      - name: Set up SSH user and password
+        run: |
+          # Set up a user to SSH and VNC into
+          sudo useradd -m ubuntu
+          echo 'ubuntu:password' | sudo chpasswd  # Replace 'password' with your desired password
+          sudo usermod -aG sudo ubuntu
+
+      - name: Configure VNC Server
+        run: |
+          # Set up the VNC server to start XFCE
+          sudo -u ubuntu vncserver :1 -geometry 1280x800 -depth 24
+          echo '#!/bin/bash\nstartxfce4 &' > /home/ubuntu/.vnc/xstartup
+          sudo chmod +x /home/ubuntu/.vnc/xstartup
+
+      - name: Expose SSH and VNC with Ngrok
         run: |
           # Set up Ngrok with your authentication token
-          # Replace YOUR_NGROK_AUTH_TOKEN with your Ngrok token from https://dashboard.ngrok.com/get-started/your-authtoken
-          ngrok authtoken 2m0fqO7U7tCY6oWS9KqcrUF2SOY_6avm7R133swSiQp9ksqiD
+          ngrok authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
           
-          # Start Ngrok to expose port 8080
-          ngrok http 8080 &
+          # Expose SSH (port 22) and VNC (port 5901) with Ngrok
+          ngrok tcp 22 &    # For SSH
+          ngrok tcp 5901 &  # For VNC
 
       - name: Keep the job running for maximum allowed time (6 hours)
         run: |
-          echo "Server running for maximum time..."
+          echo "VNC server running for maximum time..."
           sleep 21600  # Sleep for 6 hours to keep the server alive

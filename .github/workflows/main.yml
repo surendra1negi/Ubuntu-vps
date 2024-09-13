@@ -33,7 +33,7 @@ jobs:
         run: |
           # Set up a user to SSH and VNC into
           sudo useradd -m ubuntu
-          echo 'ubuntu:password' | sudo chpasswd  # Replace 'password' with your desired password
+          echo 'ubuntu:P@ssw0rd!' | sudo chpasswd  # Replace 'password' with your desired password
           sudo usermod -aG sudo ubuntu
 
       - name: Configure VNC Server

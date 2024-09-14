@@ -7,34 +7,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Set up Ngrok and SSH
+    - name: Set up Ngrok, XRDP, and SSH
       run: |
+        # Update and install necessary packages
         sudo apt-get update
         sudo apt-get install -y xrdp xfce4 xfce4-goodies
         sudo systemctl enable xrdp
         sudo ufw allow 3389
 
-        # Setting up SSH
+        # Install SSH server and enable it
         sudo apt-get install -y openssh-server
         sudo systemctl enable ssh
         sudo systemctl start ssh
 
-        # Ensure correct permissions on passwd and shadow files
-        sudo chmod 640 /etc/shadow
-        sudo chmod 644 /etc/passwd
+        # Ensure SSH is running
+        sudo systemctl status ssh
 
-        # Set the SSH password using sudo
-        echo "ubuntu:nitinbot" | sudo chpasswd
+        # Add the 'ubuntu' user and set the password explicitly
+        sudo useradd -m ubuntu || true
+        echo 'ubuntu:nitinbot' | sudo chpasswd
 
-        # Download ngrok
+        # Reconfigure SSH if needed (optional)
+        sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+        sudo systemctl restart ssh
+
+        # Download and configure ngrok
         curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
         echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
         sudo apt-get update && sudo apt-get install ngrok
 
-        # Expose the SSH server via Ngrok using a secret Ngrok auth token
-        ngrok config add-authtoken ${{ secrets.NGROK_TOKEN }}
-
-        # Start ngrok in the background to tunnel SSH on port 22
+        # Add Ngrok auth token and start tunneling SSH on port 22
+        ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
         nohup ngrok tcp 22 &
 
     - name: Display Ngrok SSH Info
@@ -45,4 +48,4 @@ jobs:
         NGROK_TOKEN: ${{ secrets.NGROK_TOKEN }}
 
     - name: Keep the runner alive
-      run: sleep 21600  # Keep the runner alive for 6 hours (max time)
+      run: sleep 21600  # Keep the runner alive for the max time (6 hours)

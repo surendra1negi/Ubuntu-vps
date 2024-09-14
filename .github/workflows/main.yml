@@ -1,41 +1,34 @@
-name: Ubuntu RDP using SSH via Ngrok
+name: Setup SSH and Ngrok
 
 on: [push]
 
 jobs:
-  ubuntu-rdp:
+  setup:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Set up Ngrok, XRDP, and SSH
+    - name: Install and Configure SSH Server
       run: |
-        # Update and install necessary packages
+        # Update package list and install necessary packages
         sudo apt-get update
-        sudo apt-get install -y xrdp xfce4 xfce4-goodies
-        sudo systemctl enable xrdp
-        sudo ufw allow 3389
-
-        # Install SSH server and enable it
         sudo apt-get install -y openssh-server
+
+        # Ensure SSH server is running
         sudo systemctl enable ssh
         sudo systemctl start ssh
 
-        # Ensure SSH is running
-        sudo systemctl status ssh
-
-        # Set the SSH password directly
-        echo 'ubuntu:nitinbot' | sudo chpasswd
-
-        # Reconfigure SSH if needed (optional)
+        # Modify SSH configuration to allow password authentication
         sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
         sudo systemctl restart ssh
 
-        # Download and configure ngrok
+    - name: Install Ngrok and Start Tunnel
+      run: |
+        # Install Ngrok
         curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
         echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
         sudo apt-get update && sudo apt-get install ngrok
 
-        # Add Ngrok auth token and start tunneling SSH on port 22
+        # Start ngrok to expose SSH on port 22
         ngrok config add-authtoken ${{ secrets.NGROK_TOKEN }}
         nohup ngrok tcp 22 &
 
@@ -46,5 +39,5 @@ jobs:
       env:
         NGROK_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
 
-    - name: Keep the runner alive
-      run: sleep 21600  # Keep the runner alive for the max time (6 hours)
+    - name: Keep Runner Alive
+      run: sleep 21600  # Keep the runner alive for 6 hours (max time)

@@ -15,8 +15,7 @@ jobs:
         sudo apt update
         sudo apt install -y wget xfce4 xfce4-goodies gnome-terminal software-properties-common
         wget https://dl.google.com/linux/direct/chrome-remote-desktop_current_amd64.deb
-        sudo dpkg -i chrome-remote-desktop_current_amd64.deb
-        sudo apt --fix-broken install -y
+        sudo dpkg -i chrome-remote-desktop_current_amd64.deb || sudo apt --fix-broken install -y
 
     - name: Configure Chrome Remote Desktop
       run: |

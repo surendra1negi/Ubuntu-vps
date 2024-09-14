@@ -1,43 +1,47 @@
-name: Setup SSH and Ngrok
+name: Run Ubuntu VPS with SSH and Ngrok
 
-on: [push]
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
-  setup:
+  run-vps:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Install and Configure SSH Server
-      run: |
-        # Update package list and install necessary packages
-        sudo apt-get update
-        sudo apt-get install -y openssh-server
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-        # Ensure SSH server is running
-        sudo systemctl enable ssh
-        sudo systemctl start ssh
+      - name: Install Ngrok and SSH
+        run: |
+          # Install Ngrok
+          curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+          echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+          sudo apt update
+          sudo apt install -y ngrok
 
-        # Modify SSH configuration to allow password authentication
-        sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
-        sudo systemctl restart ssh
+          # Install SSH server
+          sudo apt install -y openssh-server
+          sudo service ssh start
 
-    - name: Install Ngrok and Start Tunnel
-      run: |
-        # Install Ngrok
-        curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
-        echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
-        sudo apt-get update && sudo apt-get install ngrok
+      - name: Set up SSH user and password
+        run: |
+          # Set up a user to SSH into
+          sudo useradd -m ubuntu
+          echo 'ubuntu:password' | sudo chpasswd  # Replace 'password' with your desired password
+          sudo usermod -aG sudo ubuntu
 
-        # Start ngrok to expose SSH on port 22
-        ngrok config add-authtoken ${{ secrets.NGROK_TOKEN }}
-        nohup ngrok tcp 22 &
+      - name: Expose SSH with Ngrok
+        run: |
+          # Set up Ngrok with your authentication token (from Ngrok dashboard)
+          ngrok authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
 
-    - name: Display Ngrok SSH Info
-      run: |
-        sleep 10  # Allow ngrok to initialize
-        curl -s http://localhost:4040/api/tunnels | jq -r ".tunnels[0].public_url"
-      env:
-        NGROK_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+          # Start Ngrok to expose port 22 (SSH)
+          ngrok tcp 22 &
 
-    - name: Keep Runner Alive
-      run: sleep 21600  # Keep the runner alive for 6 hours (max time)
+      - name: Keep the job running for maximum allowed time (6 hours)
+        run: |
+          echo "SSH server running for maximum time..."
+          sleep 25331600  # Sleep for 6 hours to keep the server alive

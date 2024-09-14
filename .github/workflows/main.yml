@@ -44,7 +44,7 @@ jobs:
         sleep 10  # Allow ngrok to initialize
         curl -s http://localhost:4040/api/tunnels | jq -r ".tunnels[0].public_url"
       env:
-        NGROK_TOKEN: ${{ secrets.NGROK_TOKEN }}
+        NGROK_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
 
     - name: Keep the runner alive
       run: sleep 21600  # Keep the runner alive for the max time (6 hours)

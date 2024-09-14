@@ -1,42 +1,48 @@
-name: Chrome Remote Desktop with XFCE on Ubuntu
+name: Ubuntu RDP using SSH via Ngrok
 
-on:
-  push:
-    branches:
-      - main
+on: [push]
 
 jobs:
-  setup-remote-desktop:
+  ubuntu-rdp:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Install XFCE Desktop and Chrome Remote Desktop
+    - name: Set up Ngrok and SSH
       run: |
-        sudo apt update
-        sudo apt install -y wget xfce4 gnome-session gdm3
-        wget https://dl.google.com/linux/direct/chrome-remote-desktop_current_amd64.deb
-        sudo dpkg -i chrome-remote-desktop_current_amd64.deb || sudo apt --fix-broken install -y
+        sudo apt-get update
+        sudo apt-get install -y xrdp xfce4 xfce4-goodies
+        sudo systemctl enable xrdp
+        sudo ufw allow 3389
 
-    - name: Unlock ubuntu User Account
-      run: |
-        sudo usermod -U ubuntu
+        # Setting up SSH
+        sudo apt-get install -y openssh-server
+        sudo systemctl enable ssh
+        sudo systemctl start ssh
 
-    - name: Set User Password
-      run: |
-        echo 'ubuntu:121212' | sudo chpasswd
+        # Ensure correct permissions on passwd and shadow files
+        sudo chmod 640 /etc/shadow
+        sudo chmod 644 /etc/passwd
 
-    - name: Start GUI Session
-      run: |
-        sudo systemctl start gdm3
-        sudo apt install -y xfce4-terminal
-        export DISPLAY=:0
+        # Set the SSH password using sudo
+        echo "ubuntu:nitinbot" | sudo chpasswd
 
-    - name: Set up Chrome Remote Desktop with PIN
-      run: |
-        export DISPLAY=:0
-        /opt/google/chrome-remote-desktop/start-host --code="4/0AQlEd8zbhpPFKAUMJehBGaIeh0CfUzhvgApZ8tIpIhQN2vm1-2XXey__co2x4qCSgDQuJw" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$(hostname)
-        sudo /opt/google/chrome-remote-desktop/chrome-remote-desktop --pin=121212 # Replace with your desired PIN
+        # Download ngrok
+        curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+        echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+        sudo apt-get update && sudo apt-get install ngrok
 
-    - name: Keep the session alive
+        # Expose the SSH server via Ngrok using a secret Ngrok auth token
+        ngrok config add-authtoken ${{ secrets.NGROK_TOKEN }}
+
+        # Start ngrok in the background to tunnel SSH on port 22
+        nohup ngrok tcp 22 &
+
+    - name: Display Ngrok SSH Info
       run: |
-        sleep infinity
-        
+        sleep 10  # Allow ngrok to initialize
+        curl -s http://localhost:4040/api/tunnels | jq -r ".tunnels[0].public_url"
+      env:
+        NGROK_TOKEN: ${{ secrets.NGROK_TOKEN }}
+
+    - name: Keep the runner alive
+      run: sleep 21600  # Keep the runner alive for 6 hours (max time)

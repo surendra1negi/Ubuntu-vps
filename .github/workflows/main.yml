@@ -1,47 +1,43 @@
-name: Run Ubuntu VPS with SSH and Ngrok
+name: Chrome Remote Desktop Setup
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
 
 jobs:
-  run-vps:
+  setup-remote-desktop:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Install XFCE and Chrome Remote Desktop
+      run: |
+        sudo apt update
+        sudo apt install -y wget xfce4 xfce4-goodies gnome-terminal software-properties-common
+        wget https://dl.google.com/linux/direct/chrome-remote-desktop_current_amd64.deb
+        sudo dpkg -i chrome-remote-desktop_current_amd64.deb
+        sudo apt --fix-broken install -y
 
-      - name: Install Ngrok and SSH
-        run: |
-          # Install Ngrok
-          curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
-          echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
-          sudo apt update
-          sudo apt install -y ngrok
+    - name: Configure Chrome Remote Desktop
+      run: |
+        # Set up Chrome Remote Desktop to use XFCE
+        sudo bash -c 'echo "exec /etc/X11/Xsession /usr/bin/xfce4-session" > /etc/chrome-remote-desktop-session'
+        sudo systemctl enable chrome-remote-desktop
 
-          # Install SSH server
-          sudo apt install -y openssh-server
-          sudo service ssh start
+    - name: Set up Chrome Remote Desktop with Unattended Access
+      run: |
+        # Use your authentication code and set a secure PIN
+        DISPLAY= /opt/google/chrome-remote-desktop/start-host \
+        --code="4/0AQlEd8y4PCFyqzvdSNSYJfuP-P6kt1DH8pYyEynM5dxENFrTsx3kRbUZrkdAgUEJxwqb0w" \
+        --redirect-url="https://remotedesktop.google.com/_/oauthredirect" \
+        --name=$(hostname) --pin=123456
 
-      - name: Set up SSH user and password
-        run: |
-          # Set up a user to SSH into
-          sudo useradd -m ubuntu
-          echo 'ubuntu:password' | sudo chpasswd  # Replace 'password' with your desired password
-          sudo usermod -aG sudo ubuntu
+    - name: Prevent Idle Timeout
+      run: |
+        gsettings set org.gnome.desktop.screensaver lock-enabled false
+        gsettings set org.gnome.desktop.session idle-delay 0
 
-      - name: Expose SSH with Ngrok
-        run: |
-          # Set up Ngrok with your authentication token (from Ngrok dashboard)
-          ngrok authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
-
-          # Start Ngrok to expose port 22 (SSH)
-          ngrok tcp 22 &
-
-      - name: Keep the job running for maximum allowed time (6 hours)
-        run: |
-          echo "SSH server running for maximum time..."
-          sleep 21600  # Sleep for 6 hours to keep the server alive
+    - name: Keep the session alive
+      run: |
+        sleep infinity
+        

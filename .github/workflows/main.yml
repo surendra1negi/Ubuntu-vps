@@ -1,4 +1,4 @@
-name: Run Ubuntu VPS with SSH and Ngrok
+name: Run Ubuntu VPS with SSH and NGROCK
 
 on:
   workflow_dispatch:

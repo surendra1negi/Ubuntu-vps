@@ -1,4 +1,4 @@
-name: Run Ubuntu VPS with SSH and NGROCK
+name: Run Ubuntu VPS with SSH and LocalTunnel
 
 on:
   workflow_dispatch:
@@ -14,15 +14,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install Ngrok and SSH
+      - name: Install LocalTunnel and SSH
         run: |
           export DISPLAY=:99
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
-          # Install Ngrok
-          curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
-          echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
-          sudo apt update
-          sudo apt install -y ngrok
+          
+          # Install LocalTunnel
+          curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+          npm install -g localtunnel
 
           # Install SSH server
           sudo apt install -y openssh-server
@@ -36,17 +36,12 @@ jobs:
           echo 'ubuntu:password' | sudo chpasswd  # Replace 'password' with your desired password
           sudo usermod -aG sudo ubuntu
 
-      - name: Expose SSH with Ngrok
+      - name: Expose SSH with LocalTunnel
         run: |
-          # Set up Ngrok with your authentication token (from Ngrok dashboard)
-          #ngrok authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
-
-          # Start Ngrok to expose port 22 (SSH)
-          #ngrok tcp 22 &
-          npm install -g localtunnel
-          lt --port 22 &
+          # Start LocalTunnel to expose port 22 (SSH)
+          lt --port 22 --subdomain mycustomdomain &  # Replace 'mycustomdomain' with your desired subdomain
 
       - name: Keep the job running for maximum allowed time (6 hours)
         run: |
           echo "SSH server running for maximum time..."
-          sleep 25331600  # Sleep for 6 hours to keep the server alive
+          sleep 21600  # Sleep for 6 hours to keep the server alive

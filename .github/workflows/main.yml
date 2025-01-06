@@ -19,8 +19,8 @@ jobs:
           export DISPLAY=:99
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
           
-          # Install LocalTunnel
-          curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+          # Install the latest Node.js version
+          curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash -
           sudo apt-get install -y nodejs
           npm install -g localtunnel
 

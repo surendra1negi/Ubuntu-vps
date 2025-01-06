@@ -41,6 +41,13 @@ jobs:
           # Start LocalTunnel to expose port 22 (SSH)
           lt --port 22 --subdomain mycustomdomain &  # Replace 'mycustomdomain' with your desired subdomain
 
+      - name: Display VM IP Addresses
+        run: |
+          echo "IPv4 Address:"
+          hostname -I | awk '{print $1}'
+          echo "IPv6 Address:"
+          hostname -I | awk '{print $2}'
+
       - name: Keep the job running for maximum allowed time (6 hours)
         run: |
           echo "SSH server running for maximum time..."

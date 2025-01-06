@@ -39,10 +39,12 @@ jobs:
       - name: Expose SSH with Ngrok
         run: |
           # Set up Ngrok with your authentication token (from Ngrok dashboard)
-          ngrok authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+          #ngrok authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
 
           # Start Ngrok to expose port 22 (SSH)
-          ngrok tcp 22 &
+          #ngrok tcp 22 &
+          npm install -g localtunnel
+          lt --port 22 &
 
       - name: Keep the job running for maximum allowed time (6 hours)
         run: |

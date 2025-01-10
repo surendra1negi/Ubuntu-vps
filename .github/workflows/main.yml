@@ -46,7 +46,7 @@ jobs:
         run: |
           # Start LocalTunnel to expose port 22 (SSH)
           curl https://loca.lt/mytunnelpassword
-          lt --port 22 --subdomain your-custom-subdomain &
+          lt --port 22 --subdomain ubuntu-vps-by-nitin &
 
       - name: Keep the job running for maximum allowed time (6 hours)
         run: |

@@ -30,18 +30,23 @@ jobs:
           sudo service ssh start
           sudo apt update && sudo apt upgrade -y
 
-      - name: Set up SSH user and password
+      - name: Set up SSH user without password or key
         run: |
           # Set up a user to SSH into
           sudo useradd -m ubuntu
-          echo 'ubuntu:password' | sudo chpasswd  # Replace 'password' with your desired password
           sudo usermod -aG sudo ubuntu
+
+          # Disable password and key authentication for SSH
+          sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+          sudo sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication no/' /etc/ssh/sshd_config
+          sudo sed -i 's/PermitEmptyPasswords no/PermitEmptyPasswords yes/' /etc/ssh/sshd_config
+          sudo systemctl restart ssh
 
       - name: Expose SSH with LocalTunnel
         run: |
           # Start LocalTunnel to expose port 22 (SSH)
           lt --port 22 --subdomain your-custom-subdomain &
-          
+
       - name: Keep the job running for maximum allowed time (6 hours)
         run: |
           echo "SSH server running for maximum time..."

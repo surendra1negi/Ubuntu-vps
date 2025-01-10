@@ -45,6 +45,7 @@ jobs:
       - name: Expose SSH with LocalTunnel
         run: |
           # Start LocalTunnel to expose port 22 (SSH)
+          curl https://loca.lt/mytunnelpassword
           lt --port 22 --subdomain your-custom-subdomain &
 
       - name: Keep the job running for maximum allowed time (6 hours)

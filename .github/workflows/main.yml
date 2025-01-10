@@ -1,4 +1,4 @@
-name: Run Ubuntu VPS with SSH and Serveo
+name: Run Ubuntu VPS with SSH and Telebit
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install SSH
+      - name: Install Telebit and SSH
         run: |
           export DISPLAY=:99
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
@@ -24,6 +24,9 @@ jobs:
           sudo service ssh start
           sudo apt update && sudo apt upgrade -y
 
+          # Install Telebit
+          curl -s https://get.telebit.io/ | bash
+
       - name: Set up SSH user and password
         run: |
           # Set up a user to SSH into
@@ -31,10 +34,10 @@ jobs:
           echo 'ubuntu:password' | sudo chpasswd  # Replace 'password' with your desired password
           sudo usermod -aG sudo ubuntu
 
-      - name: Expose SSH with Serveo
+      - name: Expose SSH with Telebit
         run: |
-          # Start Serveo to expose port 22 (SSH)
-          ssh -R 80:localhost:22 serveo.net &
+          # Start Telebit to expose port 22 (SSH)
+          telebit http 22 &
 
       - name: Keep the job running for maximum allowed time (6 hours)
         run: |

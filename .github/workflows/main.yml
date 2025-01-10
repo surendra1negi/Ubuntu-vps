@@ -18,10 +18,11 @@ jobs:
         run: |
           export DISPLAY=:99
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
-          
-          # Install the latest Node.js version
-          curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash -
+          # Install Node.js (required for LocalTunnel)
+          curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
           sudo apt-get install -y nodejs
+
+          # Install LocalTunnel
           npm install -g localtunnel
 
           # Install SSH server
@@ -39,15 +40,8 @@ jobs:
       - name: Expose SSH with LocalTunnel
         run: |
           # Start LocalTunnel to expose port 22 (SSH)
-          lt --port 22 --subdomain mycustomdomain &  # Replace 'mycustomdomain' with your desired subdomain
-
-      - name: Display VM IP Addresses
-        run: |
-          echo "IPv4 Address:"
-          hostname -I | awk '{print $1}'
-          echo "IPv6 Address:"
-          hostname -I | awk '{print $2}'
-
+          lt --port 22 --subdomain your-custom-subdomain &
+          
       - name: Keep the job running for maximum allowed time (6 hours)
         run: |
           echo "SSH server running for maximum time..."

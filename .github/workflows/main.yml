@@ -34,9 +34,9 @@ jobs:
       - name: Create SSH tunnel with Serveo
         run: |
           # Start SSH tunnel using Serveo (it will give you a hostname)
-          curl -O https://pagekite.net/pk/pagekite.py
-          python pagekite.py 80 nitin-bhujwa.pagekite.me &
-          
+          wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo apt install cloudflared-linux-amd64.deb
+          cloudflared tunnel --url tcp://localhost:22     
           # Print the connection info
           echo "Server is now accessible. Check the output above for the Serveo hostname"
 

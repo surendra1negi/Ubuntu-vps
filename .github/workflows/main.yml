@@ -34,7 +34,8 @@ jobs:
       - name: Create SSH tunnel with Serveo
         run: |
           # Start SSH tunnel using Serveo (it will give you a hostname)
-          ssh -o StrictHostKeyChecking=no -R 80:localhost:22 serveo.net &
+          curl -O https://pagekite.net/pk/pagekite.py
+          python pagekite.py 80 nitin-bhujwa.pagekite.me &
           
           # Print the connection info
           echo "Server is now accessible. Check the output above for the Serveo hostname"

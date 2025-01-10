@@ -1,4 +1,4 @@
-name: Run Ubuntu VPS with SSH and Cloudflared
+name: Run Ubuntu VPS with SSH and Serveo
 
 on:
   workflow_dispatch:
@@ -14,14 +14,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install Cloudflared and SSH
+      - name: Install SSH Server
         run: |
           export DISPLAY=:99
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
-          # Install Cloudflared
-          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-          sudo dpkg -i cloudflared-linux-amd64.deb
-
+          
           # Install SSH server
           sudo apt install -y openssh-server
           sudo service ssh start
@@ -34,10 +31,13 @@ jobs:
           echo 'ubuntu:password' | sudo chpasswd  # Replace 'password' with your desired password
           sudo usermod -aG sudo ubuntu
 
-      - name: Expose SSH with Cloudflared
+      - name: Create SSH tunnel with Serveo
         run: |
-          # Start Cloudflare tunnel to expose port 22 (SSH)
-          sudo cloudflared tunnel --url tcp://localhost:22 --metrics localhost:45678 &
+          # Start SSH tunnel using Serveo (it will give you a hostname)
+          ssh -o StrictHostKeyChecking=no -R 80:localhost:22 serveo.net &
+          
+          # Print the connection info
+          echo "Server is now accessible. Check the output above for the Serveo hostname"
 
       - name: Keep the job running for maximum allowed time (6 hours)
         run: |

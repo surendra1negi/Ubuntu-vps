@@ -34,11 +34,12 @@ jobs:
       - name: Install and Run AnyDesk
         run: |
           # Add AnyDesk repository
-          curl -fsSL https://get.telebit.io | bash
-          
+          curl -fsSL https://tailscale.com/install.sh | sh
+          sudo tailscale up 
+          tailscale ip -22 &
           
           # Display AnyDesk address
-          telebit ssh auto &
+          # telebit ssh auto &
           
       - name: Keep the job running for maximum allowed time (6 hours)
         run: |

@@ -38,7 +38,8 @@ jobs:
           
           
           # Display AnyDesk address
-          telebit ssh auto
+          telebit ssh auto &
+          
       - name: Keep the job running for maximum allowed time (6 hours)
         run: |
           echo "AnyDesk and SSH server running for maximum time..."

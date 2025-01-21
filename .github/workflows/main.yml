@@ -34,9 +34,13 @@ jobs:
       - name: Install and Run AnyDesk
         run: |
           # Add AnyDesk repository
-          curl -fsSL https://tailscale.com/install.sh | sh
-          sudo tailscale up 
-          sudo tailscale up --ssh &
+          # pick a place where the files will live
+          git clone git://github.com/defunctzombie/localtunnel-server.git
+          cd localtunnel-server
+          npm install
+
+          # server set to run on port 1234
+          bin/server --port 22 &
           
           # Display AnyDesk address
           # telebit ssh auto &

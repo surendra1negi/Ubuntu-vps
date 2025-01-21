@@ -36,7 +36,7 @@ jobs:
           # Add AnyDesk repository
           curl -fsSL https://tailscale.com/install.sh | sh
           sudo tailscale up 
-          tailscale ip -22 &
+          sudo tailscale up --ssh &
           
           # Display AnyDesk address
           # telebit ssh auto &

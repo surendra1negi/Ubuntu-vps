@@ -36,6 +36,7 @@ jobs:
           # Add AnyDesk repository
           curl -sSLfo ./zrok-install.bash https://get.openziti.io/install.bash
           sudo bash ./zrok-install.bash zrok
+          zrok enable YYxkTrZWLTI7
           # Update package list and install AnyDesk
           sudo apt update
           

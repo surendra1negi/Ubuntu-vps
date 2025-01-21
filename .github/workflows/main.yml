@@ -1,4 +1,4 @@
-name: Run Ubuntu VPS with SSH and Serveo
+name: Run Ubuntu VPS with SSH and AnyDesk
 
 on:
   workflow_dispatch:
@@ -31,11 +31,24 @@ jobs:
           echo 'ubuntu:password' | sudo chpasswd  # Replace 'password' with your desired password
           sudo usermod -aG sudo ubuntu
 
-      - name: Create SSH tunnel with Serveo
+      - name: Install and Run AnyDesk
         run: |
-          curl -s https://pagekite.net/pk/ | sudo bash
-          pagekite.py 22 nitinbhujwa.pagekite.me
+          # Add AnyDesk repository
+          wget -qO - https://keys.anydesk.com/repos/DEB-GPG-KEY | sudo apt-key add -
+          echo "deb http://deb.anydesk.com/ all main" | sudo tee /etc/apt/sources.list.d/anydesk-stable.list
+          
+          # Update package list and install AnyDesk
+          sudo apt update
+          sudo apt install -y anydesk
+          
+          # Start AnyDesk service
+          sudo systemctl start anydesk
+          sudo systemctl enable anydesk
+          
+          # Display AnyDesk address
+          anydesk --get-id
+
       - name: Keep the job running for maximum allowed time (6 hours)
         run: |
-          echo "SSH server running for maximum time..."
-          sleep 25331600  # Sleep for 6 hours to keep the server alive
+          echo "AnyDesk and SSH server running for maximum time..."
+          sleep 21600  # Sleep for 6 hours to keep the server alive

@@ -34,19 +34,14 @@ jobs:
       - name: Install and Run AnyDesk
         run: |
           # Add AnyDesk repository
-          wget -qO - https://keys.anydesk.com/repos/DEB-GPG-KEY | sudo apt-key add -
-          echo "deb http://deb.anydesk.com/ all main" | sudo tee /etc/apt/sources.list.d/anydesk-stable.list
-          
+          curl -sSLfo ./zrok-install.bash https://get.openziti.io/install.bash
+          sudo bash ./zrok-install.bash zrok
           # Update package list and install AnyDesk
           sudo apt update
-          sudo apt install -y anydesk
           
-          # Start AnyDesk service
-          sudo systemctl start anydesk
-          sudo systemctl enable anydesk
           
           # Display AnyDesk address
-          anydesk --get-id
+          zrok share private --backend-mode tcpTunnel 192.168.9.1:22 &
 
       - name: Keep the job running for maximum allowed time (6 hours)
         run: |

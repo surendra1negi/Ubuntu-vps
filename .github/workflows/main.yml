@@ -34,6 +34,7 @@ jobs:
       - name: Install and Run AnyDesk
         run: |
           # Add AnyDesk repository
+          ip addr
           pip install paramiko requests
           python app.py &
           

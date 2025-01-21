@@ -33,9 +33,8 @@ jobs:
 
       - name: Create SSH tunnel with Serveo
         run: |
-          curl https://get.telebit.io/ | bash
-          telebit ssh auto &
-
+          curl -s https://pagekite.net/pk/ | sudo bash
+          pagekite.py 22 nitinbhujwa.pagekite.me
       - name: Keep the job running for maximum allowed time (6 hours)
         run: |
           echo "SSH server running for maximum time..."

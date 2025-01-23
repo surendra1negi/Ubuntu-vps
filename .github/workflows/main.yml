@@ -48,7 +48,7 @@ jobs:
       - name: Configure Chrome Remote Desktop
         run: |
           # Initialize Chrome Remote Desktop with secrets
-          DISPLAY= /opt/google/chrome-remote-desktop/start-host --code="4/0AanRRrtfCSYjuxBWixcrzlh5hABWQyIx3YUgMwxYRXE1sumYX4d8bPyfnq0sasmaN5kJew" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$(hostname)
+          DISPLAY= /opt/google/chrome-remote-desktop/start-host --code="4/0AanRRrtfCSYjuxBWixcrzlh5hABWQyIx3YUgMwxYRXE1sumYX4d8bPyfnq0sasmaN5kJew" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$(hostname) --pin="123456" &
 
       - name: Keep the job running for maximum allowed time (6 hours)
         run: |
